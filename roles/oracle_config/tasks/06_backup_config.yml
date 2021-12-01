@@ -1,0 +1,41 @@
+---
+- name: Insert backup config
+  blockinfile:
+    path: /opt/tivoli/tsm/client/ba/bin/dsm.opt 
+    block: |
+      SERVERname INHVSTSM31
+      subdir     yes
+      * added by bibit
+      dom /
+      dom /usr
+      dom /u03
+      dom /home
+      dom -/tmp
+      dom /opt
+      dom /dcoper
+      dom /boot
+      dom /apps/hpbto
+      dom /u02
+      dom /u01
+      dom /var
+
+- name: Insert backup config
+  blockinfile:
+    path: /dcoper/bibit_virtualnode/dsm.opt
+    block: |
+      Servername inhvstsm34
+      subdir yes
+      * added by bibit
+      dom all-local
+      dom -/
+      dom -/usr
+      dom -/u03
+      dom -/home
+      dom -/tmp
+      dom -/opt
+      dom -/dcoper
+      dom -/boot
+      dom -/apps/hpbto
+      dom -/u02
+      dom -/u01
+      dom -/var

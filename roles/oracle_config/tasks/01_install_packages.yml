@@ -1,0 +1,17 @@
+---
+- name: install dev tools
+  yum:
+    name: "@Development tools"
+    state: present
+
+- name: install x86 oracle dependencies for 11g
+  yum:
+    state: present
+    name: "{{ oracle_packages }}"
+
+    #- name: install x86 oracle bi packages
+    #  yum:
+    #    state: present
+    #    name: "{{ oracle_bi_packages }}"
+    #
+    #

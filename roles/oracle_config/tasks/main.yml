@@ -1,2 +1,67 @@
 ---
 # tasks file for roles/ansible_oracle
+
+- name: Install packages
+  include_tasks: 01_install_packages.yml
+  args:
+    apply:
+      tags: install_packages
+  tags: install_packages
+
+- name: Kernel parameters
+  include_tasks: 02_kernel_config.yml
+  args:
+    apply:
+      tags: kernel_config
+  tags: kernel_config
+
+- name: Add groups
+  include_tasks: 03_addgroups.yml
+  args:
+    apply:
+      tags: add_groups
+  tags: add_groups
+
+- name: Add users
+  include_tasks: 04_addusers.yml
+  args:
+    apply:
+      tags: add_users
+  tags: add_users
+
+- name: Add lvols
+  include_tasks: 05_lvols.yml
+  args:
+    apply:
+      tags: add_lvols
+  tags: add_lvols
+  when: install_type == "standalone"
+
+- name: Backup config
+  include_tasks: 06_backup_config.yml
+  args:
+    apply:
+      tags: backup_config
+  tags: backup_config
+
+- name: User environement
+  include_tasks: 07_user_environment.yml
+  args:
+    apply: 
+      tags: user_environment
+  tags: user_environment
+
+
+- name: Create oracle dirs
+  include_tasks: 08_dirs.yml
+  args:
+    apply:
+       tags: oracle_dirs
+  tags: oracle_dirs
+
+- name: Create templates
+  include_tasks: 09_templates.yml
+  args:
+    apply:
+      tags: templates
+  tags: templates

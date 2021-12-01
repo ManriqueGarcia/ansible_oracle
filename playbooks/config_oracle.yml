@@ -1,0 +1,6 @@
+---
+- name: Config Oracle
+  hosts: localhost
+  connection: local
+  roles:
+     - ../roles/oracle_config

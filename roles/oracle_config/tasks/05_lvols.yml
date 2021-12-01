@@ -1,0 +1,31 @@
+---
+- name: Create a logical volumes 
+  ansible.builtin.lvol:
+    vg: "{{ item.value.vg }}"
+    lv: "{{ item.key }}"
+    size: "{{ item.value.size }}"
+    state: present
+  with_dict: "{{ lvols_list | default({}) }}"
+
+- name: Format filesystems
+  filesystem:
+    fstype: xfs
+    dev: "/dev/{{ item.value.vg }}/{{ item.key }}"
+  with_dict: "{{ lvols_list | default({}) }}"
+
+
+- name: Create mount points
+  ansible.builtin.file:
+    path: "{{ item.value.mountpoint }}"
+    state: directory
+    mode: '0755'
+  with_dict: "{{ lvols_list | default({}) }}"
+
+- name: Mount lvols
+  mount:
+    path: "{{ item.value.mountpoint }}" 
+    src: "/dev/mapper/{{ item.value.vg }}-{{ item.key }}"
+    fstype: xfs
+    opts: rw,noauto
+    state: mounted 
+  with_dict: "{{ lvols_list | default({}) }}"

@@ -1,0 +1,9 @@
+---
+- name: Create directories
+  file:
+    path: "{{ item.value.path }}"
+    state: directory
+    mode: "{{ item.value.mode }}"
+    owner: "{{ item.value.owner }}"
+    group: "{{ item.value.group }}"
+  with_dict: "{{ dirs_list | default({}) }}"

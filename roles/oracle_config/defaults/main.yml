@@ -1,2 +1,76 @@
 ---
 # defaults file for roles/oracle_config
+#
+oracle_version: 11.2.0
+
+install_type: NOstandalone
+
+oracle_packages:
+   - bc
+   - binutils
+   - elfutils-libelf
+   - elfutils-libelf-devel
+   - fontconfig-devel
+   - glibc
+   - glibc-devel
+   - ksh
+   - libaio
+   - libaio-devel
+   - libXrender
+   - libX11
+   - libXau
+   - libXi
+   - libXtst
+   - libgcc
+   - libnsl
+   - librdmacm
+   - libstdc++
+   - libstdc++-devel
+   - libxcb
+   - libibverbs
+   - make
+   - smartmontools
+   - sysstat
+ 
+oracle_bi_packages:
+   - TDP-Oracle
+   - bi-ora-perl-libs
+
+kernel_params:
+        - { param: kernel.shmmax, value: 67375693824 }
+        - { param: kernel.shmall, value: 33687846 }
+        - { param: kernel.shmmni, value: 4096 }
+        - { param: kernel.sem, value: 250 40000 250 25 }
+        - { param: kernel.randomize_va_space, value: 0 }
+        - { param: net.core.wmem_default, value: 262144 }
+        - { param: net.core.rmem_max, value: 4194304 }
+        - { param: net.core.wmem_max, value: 1048576 }
+        - { param: net.ipv4.ip_local_port_range, value: 9000 65500 }
+        - { param: fs.aio-max-nr, value: 1048576 }
+        - { param: fs.file-max, value: 6815744 }
+
+groups_list:
+          dba: { gid: 6001 }
+          oinstall: { gid: 6002 }
+          oper:  { gid: 6003 }
+          osasm: { gid: 6004 }
+          osoper: { gid: 6005 }
+
+users_list:
+        oracle: { uid: 6001, group: 6002, groups: "6001,6003" }
+        asm: { uid: 6002, group: 6002, groups: "6004,6005" , shell: /bin/false }
+        crs: { uid: 6003, group: 6003, shell: /bin/false }
+
+lvols_list:
+        lvol08: { vg: vg00, size: 32G, mountpoint: /u01}
+        lvol09: { vg: vg00, size: 128M, mountpoint: /u02 }
+        lvol10: { vg: vg00, size: 20G, mountpoint: /u03 }
+
+dirs_list:
+        inventory: { path: /u01/app/oraInventory, mode: "0770", owner: oracle, group: oinstall }
+        oracle: { path: /u01/app/oracle, mode: "0755", owner: oracle, group: oinstall }
+        temporary: { path: /u03/app/oracle/temporary_data, mode: "0700", owner: oracle, group: oinstall }
+
+templates_lists:
+        oratab: { path: /etc, mode: "0644", owner: oracle, group: oinstall }
+        oraInst.loc: { path: /etc, mode: "0644", owner: root, group: root }

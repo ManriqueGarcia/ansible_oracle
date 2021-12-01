@@ -1,0 +1,26 @@
+---
+- name: Config bash profile
+  blockinfile:
+     path: /home/oracle/.bashrc
+     block: |
+        unset USERNAME
+        export EDITOR=vi
+        umask 0022
+        export PS1="[\u@\h \W] \${ORACLE_SID} > i\";
+
+- name: Create .ssh dir
+  file:
+    path: /home/oracle/.ssh
+    state: directory
+    mode: '0755'
+- name: Create authorized keys file
+  file:
+    path: /home/oracle/.ssh/authorized_keys2
+    state: touch 
+    mode: '0400'
+
+- name: configure URP Access
+  lineinfile:
+     path: /home/oracle/.ssh/authorized_keys2
+     line: ssh-dss safsdfsdafsaaadsfsdafsadprVuCzBEHv3IZXocuWAdfassdfdsafsMFldp+zw6L+skrW1LUFxDfYhb8HmRFU7+eifFdasfssfseJF3whp8vtc0nd7eh63r5RvWM7AAAAFQCQ/LE6Chv8xQWMmKwMJGP7dNtgowAAAfasdfsfsasagBTAA8T7H/iuozypXhuxhRe3IfwkOsfsfBSIOc6+IXvFHgMMvqNzgp0heGlU3qL/o2g9l6nxYasdfsd9aHEYAkgAAAIEApeYiw3VI6JRneEsMmadSwxwgtA2q6M2CVyUJpbjpiTEK5upasfasdfaasdfewqrweq63cYSMDzphztgDvMAPIsRxKZ0yKiB344KsCk=  test@rh.bcnconsulting.com
+         

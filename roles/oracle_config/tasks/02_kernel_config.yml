@@ -1,0 +1,7 @@
+---
+- name: Kernel parameters
+  sysctl:
+    name: "{{ item.param }}"
+    value: "{{ item.value }}"
+    state: present
+  loop: "{{ kernel_params }}"
