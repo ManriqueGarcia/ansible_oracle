@@ -6,9 +6,10 @@
 
 - name: install x86 oracle dependencies for 11g
   yum:
-    state: latest
+    state: present 
     name: "{{ oracle_packages }}"
     disable_gpg_check: yes
+    validate_certs: no
 
 
     #- name: install x86 oracle bi packages
