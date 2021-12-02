@@ -9,7 +9,7 @@
 
 - name: Format filesystems
   filesystem:
-    fstype: xfs
+    fstype: "{{ item.value.fstype }}"
     dev: "/dev/{{ item.value.vg }}/{{ item.key }}"
   with_dict: "{{ lvols_list | default({}) }}"
 
@@ -25,7 +25,7 @@
   mount:
     path: "{{ item.value.mountpoint }}" 
     src: "/dev/mapper/{{ item.value.vg }}-{{ item.key }}"
-    fstype: xfs
-    opts: rw,noauto
+    fstype: "{{ item.value.fstype }}" 
+    opts: "{{ item.value.opts }}"
     state: mounted 
   with_dict: "{{ lvols_list | default({}) }}"

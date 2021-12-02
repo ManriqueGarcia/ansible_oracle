@@ -35,17 +35,10 @@
     apply:
       tags: add_lvols
   tags: add_lvols
-  when: install_type == "standalone"
-
-- name: Backup config
-  include_tasks: 06_backup_config.yml
-  args:
-    apply:
-      tags: backup_config
-  tags: backup_config
+  when: standalone == "true"
 
 - name: User environement
-  include_tasks: 07_user_environment.yml
+  include_tasks: 06_user_environment.yml
   args:
     apply: 
       tags: user_environment
@@ -53,21 +46,21 @@
 
 
 - name: Create oracle dirs
-  include_tasks: 08_dirs.yml
+  include_tasks: 07_dirs.yml
   args:
     apply:
        tags: oracle_dirs
   tags: oracle_dirs
 
 - name: Create templates
-  include_tasks: 09_templates.yml
+  include_tasks: 08_templates.yml
   args:
     apply:
       tags: templates
   tags: templates
 
 - name: Copy files
-  include_tasks: 10_copy_files.yml
+  include_tasks: 09_copy_files.yml
   args:
     apply:
       tags: copy_files

@@ -5,7 +5,7 @@
     uid: "{{ item.value.uid }}"
     append: yes
     state: "present"
-#   password: "{{ password | password_hash('sha512') }}"
+    password: "{{ password | password_hash('sha512') | default(omit) }}"
     shell: "{{ item.value.shell |default('/bin/bash')}}"
     group: "{{ item.value.group | default(omit) }}"
     groups: "{{ item.value.groups | default(omit) }}"

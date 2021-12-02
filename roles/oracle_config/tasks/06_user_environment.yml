@@ -2,17 +2,13 @@
 - name: Config bash profile
   blockinfile:
      path: /home/oracle/.bashrc
-     block: |
-        unset USERNAME
-        export EDITOR=vi
-        umask 0022
-        export PS1="[\u@\h \W] \${ORACLE_SID} > i\";
+     block: "{{ bashconfig }}"
 
 - name: Set authorized key without validating the TLS/SSL certificates
   authorized_key:
     user: "{{ item.value.user }}"
     state: present
-    path: "{{ item.value.path }}"
+    path: "{{ item.value.path | default(omit) }}"
     key: "{{ item.value.key }}"
     validate_certs: False
   with_dict: "{{ keys_list | default({}) }}"
