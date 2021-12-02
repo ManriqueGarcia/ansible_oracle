@@ -1,31 +1,9 @@
 ---
-- name: Create oratab file
-  file:
-     path: "{{ item.value.path }}/{{ item.key }}"
-     state: touch
-     mode: "{{ item.value.mode }}"
+- name: Oratab template
+  ansible.builtin.template:
+     src: "../templates/{{ item.key }}.j2"
+     dest: "{{ item.value.path }}/{{ item.key }}"
      owner: "{{ item.value.owner }}"
      group: "{{ item.value.group }}"
-  with_dict: "{{ templates_lists | default({}) }}"
-
-- name: Oratab template
-  blockinfile:
-    path: /etc/oratab
-    block: |
-       \# This file is used by ORACLE utilities.  It is created by root.sh
-       \# and updated by the Database Configuration Assistant when creating
-       \# a database.
-       \# A colon, \':\', is used as the field terminator.  A new line terminates
-       \# the entry.  Lines beginning with a pound sign, \'#\', are comments.
-       \#
-       \# Entries are of the form:
-       \#   $ORACLE_SID:$ORACLE_HOME:<N|Y>:
-       \#
-
-- name: oraInst template
-  blockinfile:
-    path: /etc/oraInst.loc
-    block: |
-       inventory_loc=/u01/app/oraInventory
-       inst_group=oinstall
-
+     mode: "{{ item.value.mode }}"
+  with_dict: "{{ templates_list  | default({}) }}"

@@ -65,3 +65,10 @@
     apply:
       tags: templates
   tags: templates
+
+- name: Copy files
+  include_tasks: 10_copy_files.yml
+  args:
+    apply:
+      tags: copy_files
+  tags: copy_files

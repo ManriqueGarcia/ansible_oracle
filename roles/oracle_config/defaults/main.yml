@@ -61,6 +61,9 @@ users_list:
         asm: { uid: 6002, group: 6002, groups: "6004,6005" , shell: /bin/false }
         crs: { uid: 6003, group: 6003, shell: /bin/false }
 
+keys-list:
+        urpkey: { user: oracle, path: /home/oracle/.ssh/authorized_keys2, key: "https://github.com/keys" }
+
 lvols_list:
         lvol08: { vg: vg00, size: 32G, mountpoint: /u01}
         lvol09: { vg: vg00, size: 128M, mountpoint: /u02 }
@@ -71,6 +74,14 @@ dirs_list:
         oracle: { path: /u01/app/oracle, mode: "0755", owner: oracle, group: oinstall }
         temporary: { path: /u03/app/oracle/temporary_data, mode: "0700", owner: oracle, group: oinstall }
 
-templates_lists:
+templates_list:
         oratab: { path: /etc, mode: "0644", owner: oracle, group: oinstall }
         oraInst.loc: { path: /etc, mode: "0644", owner: root, group: root }
+
+files_list:
+        fetchnsnames.conf: { path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
+        fetchnsnames.pl: { path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
+        listener.ora: { path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
+        tnsnames.ora: { path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
+        sqlnet.ora: { path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
+        ldap_am.ora.sample: { path: "/u01/app/oracle/network/admin/sample", mode: "0744", owner: oracle, group: oinstall }

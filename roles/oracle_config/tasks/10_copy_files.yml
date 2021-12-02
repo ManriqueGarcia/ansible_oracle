@@ -1,0 +1,9 @@
+---
+- name: Copy Files
+  copy:
+    src: "../files/{{ item.key }}"
+    dest: "{{ item.value.path }}/{{ item.key }}"
+    owner: "{{ item.value.owner }}"
+    group: "{{ item.value.group }}"
+    mode: "{{ item.value.mode }}"
+  with_dict: "{{ files_list | default({}) }}"
