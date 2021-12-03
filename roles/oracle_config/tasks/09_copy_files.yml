@@ -6,4 +6,16 @@
     owner: "{{ item.value.owner }}"
     group: "{{ item.value.group }}"
     mode: "{{ item.value.mode }}"
+  when: item.value.type == "file"
   with_dict: "{{ files_list | default({}) }}"
+
+- name: Create a symbolic link
+  file:
+    src: "{{ item.value.src }}"
+    dest: "{{ item.value.dest }}"
+    owner: "{{ item.value.owner }}"
+    group: "{{ item.value.group }}"
+    state: link
+  when: item.value.type == "link"
+  with_dict: "{{ files_list | default({}) }}"
+

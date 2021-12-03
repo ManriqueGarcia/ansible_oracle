@@ -5,6 +5,12 @@ oracle_version: 11.2.0
 
 cluster: true 
 
+eu_domain: 
+  - ap.bcnconsulting.com
+  - bcnconsulting.com
+
+am_domain: ot.bcnconsulting.com
+
 primary_node: primary.bcnconsulting.com
 failover_node: failover.bcnconsulting.com
 
@@ -86,6 +92,10 @@ dirs_list:
         log: { path: /u01/app/oracle/network/log, mode: "0755", owner: oracle, group: oinstall }
         trace: { path: /u01/app/oracle/network/trace, mode: "0755", owner: oracle, group: oinstall }
         admin: { path: /u01/app/oracle/network/admin, mode: "0755", owner: oracle, group: oinstall }
+        sample: { path: /u01/app/oracle/network/admin/sample, mode: "0755", owner: oracle, group: oinstall }
+        dcoper: { path: /dcoper/bibit_virtualnode, mode: "0755", owner: root, group: root }
+        dsm: { path: /opt/tivoli/tsm/client/ba/bin, mode: "0755", owner: root, group: root }
+        
 
 templates_list:
         oratab: { name: oratab, path: /etc, mode: "0644", owner: oracle, group: oinstall }
@@ -97,10 +107,15 @@ templates_list:
         listener.ora: { name: listener.ora, path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
         tnsnames.ora: { name: tnsnames.ora, path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
         sqlnet.ora: { name: sqlnet.ora, path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
+
+ldap_am_list:
         ldap_am.ora.sample: { name: ldap_am.ora.sample, path: "/u01/app/oracle/network/admin/sample", mode: "0744", owner: oracle, group: oinstall }
+
+ldap_eu_list:
         ldap_eu.ora.sample: { name: ldap_eu.ora.sample, path: "/u01/app/oracle/network/admin/sample", mode: "0744", owner: oracle, group: oinstall }
 
 files_list:
+      lsnr: { type: link, src: /usr/local/bin/oraenv_bi, dest: /usr/local/bin/lsnr_1526, owner: root, group: root }
 
 cronjobs_list:
         fetchtnsnames: { user: oracle, min: 30, hour: 4, day: "*", month: "*", weekday: "*", job: "/u01/app/oracle/network/admin/fetchtnsnames.pl > %{ORACLE_BASE}/network/log/fetchtnsnames.log 2>&1" }

@@ -1,6 +1,6 @@
 ---
 - name: Config Oracle
-  hosts: localhost
-  connection: local
+  hosts: nodes 
+  #  connection: local
   roles:
      - ../roles/oracle_config
