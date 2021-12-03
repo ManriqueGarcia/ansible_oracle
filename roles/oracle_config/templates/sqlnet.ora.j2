@@ -1,3 +1,20 @@
+# +---------------------------------------------------------------------------------------+
+# | FILE    : sqlnet.ora                                                                  |
+# | VERSION : 1.0                                                                         | 
+# | PURPOSE : This configuration file defines the default network                         |
+# |           configuration including name resolution for systems in the US.              |
+# | HISTORY : schroedu  1.0  Initial Release                                              |
+# |           emontesc  1.4  Rever to original version with one common file               |
+# |           both AM and EU domains.                                                     |
+# |           emontesc  1.7  Added parameters for encryption.                             |
+# |           luirgo	1.10 NAMES.DIRECTORY_PATH: TNSNAMES primary and LDAP secondary    |
+# |           luirgo	1.10 DEFAULT DOMAIN unified to boehringer.com                     |
+# +---------------------------------------------------------------------------------------+
+
+TRACE_LEVEL_CLIENT = OFF
+DIAG_ADR_ENABLED = OFF
+SQLNET.EXPIRE_TIME = 10
+
 NAMES.DEFAULT_DOMAIN = BOEHRINGER.COM
 SQLNET.ALLOWED_LOGON_VERSION_SERVER = 11
 SQLNET.ALLOWED_LOGON_VERSION_CLIENT = 11

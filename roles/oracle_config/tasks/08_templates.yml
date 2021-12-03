@@ -8,22 +8,21 @@
      mode: "{{ item.value.mode }}"
   with_dict: "{{ templates_list | default({}) }}"
 
-- name: ldap eu template
-  ansible.builtin.template:
-     src: "../templates/{{ item.key }}.j2"
-     dest: "{{ item.value.path }}/{{ item.value.name }}"
-     owner: "{{ item.value.owner }}"
-     group: "{{ item.value.group }}"
-     mode: "{{ item.value.mode }}"
-  when: ansible_facts['domain'] in eu_domain 
-  with_dict: "{{ ldap_eu_list | default({}) }}"
+  #- name: ldap 
+  #  ansible.builtin.template:
+  #     src: "../templates/ldap.j2"
+  #     dest: "{{ item.value.path }}/{{ item.value.name }}"
+  #     owner: "{{ item.value.owner }}"
+  #     group: "{{ item.value.group }}"
+  #     mode: "{{ item.value.mode }}"
+  #  with_dict: "{{ ldap_list | default({}) }}"
 
-- name: ldap eu template
-  ansible.builtin.template:
-     src: "../templates/{{ item.key }}.j2"
-     dest: "{{ item.value.path }}/{{ item.value.name }}"
-     owner: "{{ item.value.owner }}"
-     group: "{{ item.value.group }}"
-     mode: "{{ item.value.mode }}"
-  when: ansible_facts['domain'] == am_domain 
-  with_dict: "{{ ldap_am_list | default({}) }}"
+  #- name: ldap eu template
+  #  ansible.builtin.template:
+  #     src: "../templates/{{ item.key }}.j2"
+  #     dest: "{{ item.value.path }}/{{ item.value.name }}"
+  #     owner: "{{ item.value.owner }}"
+  #     group: "{{ item.value.group }}"
+  #     mode: "{{ item.value.mode }}"
+  #  when: ansible_facts['domain'] == am_domain 
+  #  with_dict: "{{ ldap_am_list | default({}) }}"

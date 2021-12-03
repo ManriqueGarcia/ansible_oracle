@@ -1,0 +1,45 @@
+{% if ansible_facts['domain'] in eu_domains %}
+# +----------------------------------------------------------------------------+
+# | FILE    : ldap_eu.ora                                                      |
+# | VERSION : 1.6                                                              |
+# | PURPOSE : This file defines the LDAP configuration for systems in the EU   |
+# |           region.                                                          |
+# | HISTORY : schroedu  1.0  Initial Release                                   |
+# |           giessled  1.1  Changed entry for directory servers to new alias  |
+# |           jcook     1.6  Changed DEFAULT_ADMIN_CONTEXT to global value     |
+# |                                                                            |
+# | NOTE    : DO NOT MODIFY THIS FILE!!!                                       |
+# |                                                                            |
+# |           Modifications to this file may cause authentication and/or       |
+# |           authorization failures for the databases on this server          |
+# |                                                                            |
+# +----------------------------------------------------------------------------+
+
+DEFAULT_ADMIN_CONTEXT = "dc=boehringer,dc=com"
+DIRECTORY_SERVERS = (oid.eu.boehringer.com:389:636)
+DIRECTORY_SERVER_TYPE = OID
+
+{% endif %}
+
+{% if ansible_facts['domain'] in am_domains %}
+# +----------------------------------------------------------------------------+
+# | FILE    : ldap_am.ora                                                      |
+# | VERSION : 1.6                                                              |
+# | PURPOSE : This file defines the LDAP configuration for systems in the AM   |
+# |           region.                                                          |
+# | HISTORY : schroedu  1.0  Initial Release                                   |
+# |           giessled  1.1  Changed entry for directory servers to new alias  |
+# |           jcook     1.6  Changed DEFAULT_ADMIN_CONTEXT to global value     |
+# |                                                                            |
+# | NOTE    : DO NOT MODIFY THIS FILE!!!                                       |
+# |                                                                            |
+# |           Modifications to this file may cause authentication and/or       |
+# |           authorization failures for the databases on this server          |
+# |                                                                            |
+# +----------------------------------------------------------------------------+
+
+DEFAULT_ADMIN_CONTEXT = "dc=boehringer,dc=com"
+DIRECTORY_SERVERS = (oid.am.boehringer.com:389:636)
+DIRECTORY_SERVER_TYPE = OID
+
+{% endif %}

@@ -5,11 +5,12 @@ oracle_version: 11.2.0
 
 cluster: true 
 
-eu_domain: 
-  - ap.bcnconsulting.com
-  - bcnconsulting.com
+eu_domains: 
+      - xx.bcnconsulting.com
+      - ap.bcnconsulting.com
 
-am_domain: ot.bcnconsulting.com
+am_domains:
+      - bcnconsulting.com
 
 primary_node: primary.bcnconsulting.com
 failover_node: failover.bcnconsulting.com
@@ -107,12 +108,7 @@ templates_list:
         listener.ora: { name: listener.ora, path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
         tnsnames.ora: { name: tnsnames.ora, path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
         sqlnet.ora: { name: sqlnet.ora, path: "/u01/app/oracle/network/admin/", mode: "0744", owner: oracle, group: oinstall }
-
-ldap_am_list:
-        ldap_am.ora.sample: { name: ldap_am.ora.sample, path: "/u01/app/oracle/network/admin/sample", mode: "0744", owner: oracle, group: oinstall }
-
-ldap_eu_list:
-        ldap_eu.ora.sample: { name: ldap_eu.ora.sample, path: "/u01/app/oracle/network/admin/sample", mode: "0744", owner: oracle, group: oinstall }
+        ldap: { name: ldap.ora, path: "/u01/app/oracle/network/admin", mode: "0744", owner: oracle, group: oinstall }
 
 files_list:
       lsnr: { type: link, src: /usr/local/bin/oraenv_bi, dest: /usr/local/bin/lsnr_1526, owner: root, group: root }

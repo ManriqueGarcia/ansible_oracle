@@ -1,3 +1,28 @@
+# +----------------------------------------------------------------------------+
+# | FILE    : listener.ora                                                     |
+# | VERSION : 1.0                                                              | 
+# | PURPOSE : This configuration file defines the default listener             |
+# |           configuration.                                                   |
+# +----------------------------------------------------------------------------+
+
+#LISTENER_<port> =
+#  (DESCRIPTION = 
+#    (ADDRESS = (PROTOCOL = TCP)(HOST = <local_physical_node>.eu.boehringer.com)(PORT = <port>))
+#    (ADDRESS = (PROTOCOL = IPC)(KEY = BIORAIPC))
+#  )
+#
+#LOGGING_LISTENER_<port> = ON
+#LOG_DIRECTORY_LISTENER_<port> = /u01/app/oracle/network/log
+#DIAG_ADR_ENABLED_LISTENER_<port> = OFF
+#ADR_BASE_LISTENER_<port> = /u01/app/oracle/network/trace
+#TRACE_DIRECTORY_LISTENER_<port> = /u01/app/oracle/network/trace
+#TRACE_LEVEL_LISTENER_<port> = 0
+#SUBSCRIBE_FOR_NODE_DOWN_EVENT_LISTENER_<port>=OFF
+#VALID_NODE_CHECKING_REGISTRATION_LISTENER_<port>=ON
+#REGISTRATION_INVITED_NODES_LISTENER_<port>=(<remote_physical_node>.eu.boehringer.com)
+#SECURE_CONTROL_LISTENER_<port>=IPC
+#ADMIN_RESTRICTIONS_LISTENER_<port>=ON
+
 LISTENER_1526 =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = ${HOSTNAME})(PORT = 1526))
