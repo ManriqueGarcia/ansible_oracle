@@ -1,0 +1,360 @@
+#!/usr/bin/perl
+# If neccessary modify first line to match your environment.
+
+# +----------------------------------------------------------------------------+
+# | FILE    : fetchtnsnames.pl                                                 |
+# | AUTHOR  : Uli Frank Schroeder                                              |
+# | PURPOSE : This script will fetch the current tnsnames.ora from the         |
+# |           network.                                                         |
+# | OUTPUT  : Local copy of current tnsnames.ora                               |
+# | HISTORY :                                                                  |
+# |   29.09.2004 v1.0 Initial release                                          |
+# |   29.10.2004 v1.1 Changed interface to correspond to the Windows           |
+# |                   equivalent fetchtnsnames.vbs                             |
+# |   11.11.2004 v1.2 Remove trailing slashes from pathnames                   |
+# |                   Change ownership of local file to oracle:dba             |
+# |   12.11.2004 v1.3 Distinguished in syslog if file was up-to-date or        |
+# |                   if it was really transferred                             |
+# |   16.11.2004 v1.4 Separated variable part of the config section from       |
+# |                   the rest                                                 |
+# |   17.11.2004 v1.5 Migration to Perl for platform independency              |
+# |   19.11.2004 v1.6 Changed exit code to prevent misleading ITO messages     |
+# |   23.11.2004 v1.7 Create backup file tnsnames.ora.previous                 |
+# |   30.11.2004 v2.0 Complete redesign with inclusion of an own up-to-date    |
+# |                   check procedure as WGET used size as additional criteria |
+# |   25.01.2005 v2.1 Added Linux support and message for unsupported systems  |
+# |   01.12.2005 v2.2 Added Solaris support & extend unsupported systems Msg.  |
+# |   05.12.2005 v2.3 Added basic check for existance of local directories     |
+# |   25.03.2010 v2.4 Added more sophisticated checks to prevent               |
+# |                   tnsnames.net deletion.                                   |
+# |                   Changed move commands to copy because of W2k8 privileges.|
+# |                   Introduced return code for script.                       |
+# |   18.03.2019 v2.5 Changed password for x2oratns.                           |
+# |   13.09.2021 v2.6 luirgo 						       |
+# |                   Script forced to to download the file independent        |
+# |		      of the date. This simplifies the process and             |
+# |                   reduces the propagation time                             |
+# |                   of the file when a change is made                        |
+# |                   adapted in function FetchFile                            |
+# +----------------------------------------------------------------------------+
+
+#####
+# PACKAGES/VARIABLES/CONSTANTS
+
+use strict;
+use Cwd;
+use File::Copy;
+use Time::Local;
+
+# Constants declaration
+my %common_parameters = ( config_filename => 'fetchtnsnames.conf',
+                          tns_RemoteHost => 'de-oratns.eu.boehringer.com',
+                          tns_RemotePath => '/APPS32/Oracle/Network/Admin/',
+                          tns_RemoteFile => 'tnsnames.ora',
+                          ftp_username => 'EU\\X2oratns',
+#                         ftp_password => 'FeTcH*TnS2004' );
+                          ftp_password => '6?GJbbBROh@iNEn04Tfl$1uYEVH1rQfs' );
+my %months = ( Jan => '0', Feb => '1', Mar => '2', Apr => '3',
+               May => '4', Jun => '5', Jul => '6', Aug => '7',
+               Sep => '8', Oct => '9', Nov => '10', Dec => '11' );
+
+# Variables declaration
+my %environment = ();
+my %config_parameters = ();
+my $old_workdir = "";
+my %os_specifics = ();
+my $process_returncode = -1;
+my $script_message = "";
+
+#####
+# MAIN SCRIPT
+
+# Preparations
+&AnalyzeEnvironment(\%environment);
+&ProcessParameterFile($environment{'ScriptPath'}, $common_parameters{'config_filename'}, \%config_parameters);
+print "Using parameter tns_RemoteHost = $common_parameters{'tns_RemoteHost'}\n";
+print "Using parameter tns_RemotePath = $common_parameters{'tns_RemotePath'}\n";
+print "Using parameter tns_RemoteFile = $common_parameters{'tns_RemoteFile'}\n";
+$common_parameters{'tns_RemotePath'} =~ s![/\\]*$!!;
+$common_parameters{'tns_RemoteFile'} =~ s!^[/\\]*!!;
+$old_workdir = cwd();
+chdir("$config_parameters{'tns_temppath'}");
+# Define specific parameters for OS
+if ($environment{'OS'} eq "MSWin32") {
+  %os_specifics = &ProcessSpecificsMswin32($environment{'ScriptPath'}, $environment{'ScriptName'}, \%config_parameters, \%common_parameters);
+} else {
+  if ($environment{'OS'} eq "hpux") {
+    %os_specifics = &ProcessSpecificsHpux($environment{'ScriptPath'}, $environment{'ScriptName'}, \%config_parameters, \%common_parameters);
+  } else {
+    if ($environment{'OS'} eq "linux") {
+      %os_specifics = &ProcessSpecificsLinux($environment{'ScriptPath'}, $environment{'ScriptName'}, \%config_parameters, \%common_parameters);
+    } else {
+      if ($environment{'OS'} eq "solaris") {
+        %os_specifics = &ProcessSpecificsSolaris($environment{'ScriptPath'}, $environment{'ScriptName'}, \%config_parameters, \%common_parameters);
+      } else {
+        print "Unsupported operating system!: $environment{'OS'}\n";
+        exit -1;
+      }
+    } 
+  }
+}
+# Fetch file from remote location
+&FetchFile;
+&PostProcessing(\%os_specifics);
+# Report and log result
+&ReportResult($process_returncode, \%os_specifics, $script_message);
+# Clean up
+chdir($old_workdir);
+if (-f "$config_parameters{'tns_temppath'}/$common_parameters{'tns_RemoteFile'}") {
+#  unlink("$config_parameters{'tns_temppath'}/$common_parameters{'tns_RemoteFile'}");
+}
+exit $process_returncode;
+
+#####
+# SUB PROCEDURES/FUCTIONS
+
+# Analyze environment
+sub AnalyzeEnvironment {
+  my $result = $_[0];
+  print $_[1]."\n";
+  ${$result}{'OS'} = $^O;
+  ${$result}{'ScriptPath'} = $0;
+  ${$result}{'ScriptPath'} =~ s![/\\][^/\\]*$!!;
+  ${$result}{'ScriptName'} = $0;
+  if (${$result}{'ScriptName'} =~ m!([^/\\]*)$!) {
+    ${$result}{'ScriptName'} = $1;
+  }
+}
+
+# Read configuration parameters from file
+sub ProcessParameterFile {
+  my $config_path = $_[0];
+  my $config_file = $_[1];
+  my $config_params = $_[2];
+  my @config_content = ();
+  my $config_line = "";
+  $config_file =~ s!^[/\\]!!;
+  if (open(CONFIG_IN, "$config_path/$config_file")) {
+    @config_content = <CONFIG_IN>;
+    foreach $config_line(@config_content) {
+      if ($config_line =~ m!^([A-Z,a-z,0-9,_]*)="(.*)"!) {
+        ${$config_params}{lc($1)} = $2;
+        print "Using parameter $1 = $2\n";
+      }
+    }
+    close(CONFIG_IN);
+  } else {
+    print "\nERROR:\n  Configuration file not found!\n  -> $config_path/$config_file\n\n";
+    exit -1;
+  }
+  # Check and adjust configuration parameters
+  if (exists(${$config_params}{'tns_localpath'})) {
+    if (-d ${$config_params}{'tns_localpath'}) {
+      ${$config_params}{'tns_localpath'} =~ s![/\\]*$!!;
+    } else {
+      print "\nERROR: Path specified in variable tns_LocalPath doesn't exist!\n";
+      exit -1;
+    }
+  } else {
+    print "\nERROR: Parameter tns_LocalPath not defined in configuration file!\n\n";
+    exit -1;
+  }
+  if (exists(${$config_params}{'tns_localfile'})) {
+    ${$config_params}{'tns_localfile'} =~ s!^[/\\]*!!;
+  } else {
+    print "\nERROR: Parameter tns_LocalFile not defined in configuration file!\n\n";
+    exit -1;
+  }
+  if (exists(${$config_params}{'tns_temppath'})) {
+    if (-d ${$config_params}{'tns_temppath'}) {
+      ${$config_params}{'tns_temppath'} =~ s![/\\]*$!!;
+    } else {
+      print "\nERROR: Path specified in variable tns_TempPath doesn't exist!\n";
+      exit -1;
+    }
+  } else {
+    print "\nERROR: Parameter tns_TempPath not defined in configuration file!\n\n";
+    exit -1;
+  }
+}
+
+# Define specifics for MSWin32
+sub ProcessSpecificsMswin32 {
+  my $script_path = $_[0];
+  my $script_file = $_[1];
+  my $config_parameters = $_[2];
+  my %specific_params = ();
+  $specific_params{'ftp_cmd'} = "ftp -n -v";
+  $specific_params{'log_cmd'} = "$script_path\\logevent.exe";
+  $specific_params{'log_param_error'} = "-s E -c 0 -r $script_file -e -1";
+  $specific_params{'log_param_info'} = "-s I -c 0 -r $script_file -e 0";
+  $specific_params{'post_processing'} = "";
+  # Check logging facility
+  if (!(-f "$specific_params{'log_cmd'}")) {
+    print "\nERROR: LOGEVENT executable can not be found in the same directory as the script!\n\n";
+    exit -1;
+  }
+  return %specific_params;
+}
+
+# Define specifics for HP-UX
+sub ProcessSpecificsHpux {
+  my $script_path = $_[0];
+  my $script_file = $_[1];
+  my $config_parameters = $_[2];
+  my $common_parameters = $_[3];
+  my %specific_params = ();
+  $specific_params{'ftp_cmd'} = `which ftp`;
+  $specific_params{'ftp_cmd'} =~ s!\n! -n -v!;
+  ${$common_parameters}{'ftp_username'} =~ s![\\]!\\\\\\!;
+  $specific_params{'log_cmd'} = `which logger`;
+  $specific_params{'log_cmd'} =~ s!\n!!;
+  $specific_params{'log_param_error'} = "-t $script_file -p user.warn";
+  $specific_params{'log_param_info'} = "-t $script_file -p user.info";
+  $specific_params{'post_processing'} = "chown oracle:dba ${$config_parameters}{'tns_localpath'}/${$config_parameters}{'tns_localfile'} 2>&1\nchmod 644 ${$config_parameters}{'tns_localpath'}/${$config_parameters}{'tns_localfile'} 2>&1\n";
+  # Check for FTP tool
+  if ($specific_params{'ftp_cmd'} =~ m!^no\ !i) {
+    print "\nERROR: FTP executable can not be found through the environment variable PATH!\n\n";
+    exit -1;
+  }
+  # Check logging facility
+  if ($specific_params{'log_cmd'} =~ m!^no\ !i) {
+    print "\nERROR: LOGGER executable can not be found through the environment variable PATH!\n\n";
+    exit -1;
+  }
+  return %specific_params;
+}
+
+# Define specifics for Linux
+sub ProcessSpecificsLinux {
+  my $script_path = $_[0];
+  my $script_file = $_[1];
+  my $config_parameters = $_[2];
+  my $common_parameters = $_[3];
+  my %specific_params = ();
+  $specific_params{'ftp_cmd'} = `which ftp`;
+  $specific_params{'ftp_cmd'} =~ s!\n! -n -v!;
+  ${$common_parameters}{'ftp_username'} =~ s![\\]!\\\\\\!;
+  $specific_params{'log_cmd'} = `which logger`;
+  $specific_params{'log_cmd'} =~ s!\n!!;
+  $specific_params{'log_param_error'} = "-t $script_file -p user.warn";
+  $specific_params{'log_param_info'} = "-t $script_file -p user.info";
+  $specific_params{'post_processing'} = "chown oracle:oracle ${$config_parameters}{'tns_localpath'}/${$config_parameters}{'tns_localfile'} 2>&1\nchmod 644 ${$config_parameters}{'tns_localpath'}/${$config_parameters}{'tns_localfile'} 2>&1\n";
+  # Check for FTP tool
+  if ($specific_params{'ftp_cmd'} =~ m!^no\ !i) {
+    print "\nERROR: FTP executable can not be found through the environment variable PATH!\n\n";
+    exit -1;
+  }
+  # Check logging facility
+  if ($specific_params{'log_cmd'} =~ m!^no\ !i) {
+    print "\nERROR: LOGGER executable can not be found through the environment variable PATH!\n\n";
+    exit -1;
+  }
+  return %specific_params;
+}
+
+# Define specifics for Solaris
+sub ProcessSpecificsSolaris {
+  my $script_path = $_[0];
+  my $script_file = $_[1];
+  my $config_parameters = $_[2];
+  my $common_parameters = $_[3];
+  my %specific_params = ();
+  $specific_params{'ftp_cmd'} = `which ftp`;
+  $specific_params{'ftp_cmd'} =~ s!\n! -n -v!;
+  ${$common_parameters}{'ftp_username'} =~ s![\\]!\\\\\\!;
+  $specific_params{'log_cmd'} = `which logger`;
+  $specific_params{'log_cmd'} =~ s!\n!!;
+  $specific_params{'log_param_error'} = "-t $script_file -p user.error";
+  $specific_params{'log_param_info'} = "-t $script_file -p user.info";
+  $specific_params{'post_processing'} = "chown oracle:dba ${$config_parameters}{'tns_localpath'}/${$config_parameters}{'tns_localfile'} 2>&1\nchmod 644 ${$config_parameters}{'tns_localpath'}/${$config_parameters}{'tns_localfile'} 2>&1\n";
+  # Check for FTP tool
+  if ($specific_params{'ftp_cmd'} =~ m!^no\ !i) {
+    print "\nERROR: FTP executable can not be found through the environment variable PATH!\n\n";
+    exit -1;
+  }
+  # Check logging facility
+  if ($specific_params{'log_cmd'} =~ m!^no\ !i) {
+    print "\nERROR: LOGGER executable can not be found through the environment variable PATH!\n\n";
+    exit -1;
+  }
+  return %specific_params;
+}
+
+sub FetchFile {
+  my $console_output = "";
+  my @filestat = ();
+  my $remote_mdate_month = "";
+  my $remote_mdate_day = "";
+  my $remote_mdate_time = "";
+  my $remote_timestamp = 0;
+  my $local_timestamp = 0;
+  # Fetch using FTP tool
+  open(TMP_FTPPARAM, ">./ftp.param");
+  flock(TMP_FTPPARAM, 2);
+  seek(TMP_FTPPARAM, 0, 2);
+  print TMP_FTPPARAM "open $common_parameters{'tns_RemoteHost'}\nuser $common_parameters{'ftp_username'} $common_parameters{'ftp_password'} 0\nascii\ncd $common_parameters{'tns_RemotePath'}\nls -l\nget $common_parameters{'tns_RemoteFile'}\nclose\nbye\n";
+  close(TMP_FTPPARAM);
+  $console_output = `$os_specifics{'ftp_cmd'} 2>&1 <ftp.param`;
+  unlink("./ftp.param");
+  # Check if file is up-to-date
+  if ((stat("$config_parameters{'tns_temppath'}/$common_parameters{'tns_RemoteFile'}"))[7] != 0) {
+      # Create backup and move new file to local destination directory
+        $process_returncode = 0;
+        # Create backup copy of existing tnsnames.net if file exists
+        if (-f "$config_parameters{'tns_localpath'}/$config_parameters{'tns_localfile'}") {
+          if (! copy("$config_parameters{'tns_localpath'}/$config_parameters{'tns_localfile'}", "$config_parameters{'tns_localpath'}/$config_parameters{'tns_localfile'}.previous")) {
+             $process_returncode = -3;
+             $script_message = "Backup creation of current tnsnames.net failed!\n";
+          }
+        }
+        # Copy downloaded tnsnames.ora to target location if previous steps succeeded
+        if ( $process_returncode == 0 ) {
+           if (! copy("$config_parameters{'tns_temppath'}/$common_parameters{'tns_RemoteFile'}", "$config_parameters{'tns_localpath'}/$config_parameters{'tns_localfile'}")) {
+              $process_returncode = -4;
+              $script_message = "Local copy of downloaded temporary tnsnames.net failed!\n";
+           } else {
+              unlink("$config_parameters{'tns_temppath'}/$common_parameters{'tns_RemoteFile'}");
+           }
+           # Just to make sure the tnsnames.net exists, restore it if the process destroyed it
+           if (! -f "$config_parameters{'tns_localpath'}/$config_parameters{'tns_localfile'}") {
+             if (! copy("$config_parameters{'tns_localpath'}/$config_parameters{'tns_localfile'}.previous", "$config_parameters{'tns_localpath'}/$config_parameters{'tns_localfile'}")) {
+                $process_returncode = -5;
+                $script_message = "Restore of backup of tnsnames.net required but failed!\n";
+             } else {
+                utime($local_timestamp, $local_timestamp, ("$config_parameters{'tns_localpath'}/$config_parameters{'tns_localfile'}"));
+             }
+           }
+        }
+        if ( $process_returncode == 0 ) {
+           $script_message = "Transfer successfull!";
+        }
+  } else {
+    $process_returncode = -2;
+    $script_message = "Transfer failed!";
+  }
+  if (-f "$config_parameters{'tns_temppath'}/$common_parameters{'tns_RemoteFile'}") {
+    unlink("$config_parameters{'tns_temppath'}/$common_parameters{'tns_RemoteFile'}");
+  }
+}
+
+# Initiate processing according to result
+sub PostProcessing {
+  my $specific_params = $_[0];
+  my $console_output = `${$specific_params}{'post_processing'}`;
+}
+
+# Report result on console and log it through logging facility
+sub ReportResult {
+  my $returncode = $_[0];
+  my $specific_params = $_[1];
+  my $message = $_[2];
+  my $console_output = "";
+  if ($returncode >= 0) {
+    $console_output = `${$specific_params}{'log_cmd'} ${$specific_params}{'log_param_info'} \"$message\"\n`;
+    print "INFO: $message\n\n";
+  } else {
+    $console_output = `${$specific_params}{'log_cmd'} ${$specific_params}{'log_param_error'} \"$message\"\n`;
+    print "ERROR: $message\n\n";
+  }
+}
