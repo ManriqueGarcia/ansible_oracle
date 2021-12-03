@@ -6,4 +6,5 @@
      owner: "{{ item.value.owner }}"
      group: "{{ item.value.group }}"
      mode: "{{ item.value.mode }}"
-  with_dict: "{{ templates_list  | default({}) }}"
+  with_dict: "{{ templates_list | default({}) }}"
+  #  with_dict: "{{ templates_list | reject('ldap_eu.ora.sample', omit) }}"

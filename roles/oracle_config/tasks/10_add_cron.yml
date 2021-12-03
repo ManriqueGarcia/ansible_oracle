@@ -1,0 +1,13 @@
+---
+- name: Ensure cron jobs are running
+  cron:
+    name: "{{ item.key }}"
+    user: "{{ item.value.user }}"
+    minute: "{{ item.value.min }}"
+    hour: "{{ item.value.hour }}"
+    day: "{{ item.value.day }}"
+    month: "{{ item.value.month }}"
+    weekday: "{{ item.value.weekday }}"
+    job: "{{ item.value.job }}"
+    state: present
+  with_dict: "{{ cronjobs_list | default({}) }}"

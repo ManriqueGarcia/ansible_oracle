@@ -64,3 +64,11 @@
     apply:
       tags: copy_files
   tags: copy_files
+
+- name: Cron jobs
+  include_tasks: 10_add_cron.yml
+  args:
+    apply:
+      tags: add_cron
+  tags: add_cron
+

@@ -4,4 +4,5 @@
     name: "{{ item.key }}"
     gid: "{{ item.value.gid | default(omit) }}"
     state: present
+    local: yes
   with_dict: "{{ groups_list | default({}) }}"

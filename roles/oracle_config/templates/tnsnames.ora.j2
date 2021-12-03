@@ -1,0 +1,18 @@
+{% if cluster %}
+## Get primary_node_fqdn and add:
+ 
+LISTENER_1526.local =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = {{ primary_node }})(PORT = 1526))
+   )
+ 
+## If cluster, get failover_node_fqdn and add:
+ 
+LISTENER_1526.remote =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = {{ failover_node }})(PORT = 1526))
+  )
+
+{% else %}
+NO CLUSTER
+{% endif %}
